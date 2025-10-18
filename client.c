@@ -842,7 +842,17 @@ void handle_game_start_error(uint8_t *buffer, int len) {
 void handle_board_update(uint8_t *buffer, int len) {
     /* TODO: Parse Flag 31 and update board display */
 
-    fprintf(stderr, "ERROR: handle_board_update() not yet implemented\n");
+    if (len < 14) return;
+    int position = buffer[2];
+    int who_moved = buffer[3];
+    memcpy(board, buffer + 4, 9);
+    int next_turn = buffer[13];
+    if (who_moved == my_symbol) printf("You placed X/0 at poisition %d\n", position);
+    else printf("Opponent placed X/O at position %d\n", position);
+    display_board();
+    if (next_turn == my_symbol) printf("Your turn\n");
+    else printf("Waiting for opponent's move..."\n);
+    
 }
 
 /*****************************************************************************
