@@ -762,7 +762,28 @@ void handle_game_started(uint8_t *buffer, int len) {
 void handle_game_start_error(uint8_t *buffer, int len) {
     /* TODO: Parse Flag 22 and display error message */
 
-    fprintf(stderr, "ERROR: handle_game_start_error() not yet implemented\n");
+    if (len < 3) return;
+    int error_code = buffer[1];
+    int username_len = buffer[2];
+    if (len < 3 + username_len) return;
+    char username[username_len + 1];
+    memcpy(username, buffer + 3, username_len);
+    username[username_len] = '\0';
+    switch (error_code) {
+        case 0:
+            printf("Player does not exist: %s\n", username);
+            break;
+        case 1:
+            printf("Player already in a game: %s\n", username);
+            break;
+        case 2:
+            printf("You are already in a game: %s\n", username);
+            break;
+        case 3:
+            printf("Cannot play against yourself: %s\n", username);
+            break;
+    }
+
 }
 
 /*****************************************************************************
