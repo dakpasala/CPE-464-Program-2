@@ -699,6 +699,21 @@ void handle_list_response(int socket, uint8_t *initial_buffer, int initial_len) 
 void handle_game_started(uint8_t *buffer, int len) {
     /* TODO: Parse Flag 21 and set up game state */
 
+    if (len < 4) return;
+    int opponent_len = buffer[1];
+    if (len < 4 + opponent_len) return;
+    char opponent_name[opponent_len + 1];
+    memcpy(opponent_name, buffer + 2, opponent_len);
+    opponent_name[opponent_len] = '\0';
+    
+    my_symbol = buffer[2 + opponent_len];
+    current_game_id = buffer[3 + opponent_len];
+    client_state = STATE_IN_GAME;
+    init_board();
+    if (my_symbol == 1) printf("You go first!\n");
+    else printf("Waiting for opponent's move...\n");
+
+
     fprintf(stderr, "ERROR: handle_game_started() not yet implemented\n");
 }
 
