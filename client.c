@@ -971,7 +971,38 @@ void handle_move_invalid(uint8_t *buffer, int len) {
 void handle_game_over(uint8_t *buffer, int len) {
     /* TODO: Parse Flag 33, display result, and reset game state */
 
-    fprintf(stderr, "ERROR: handle_game_over() not yet implemented\n");
+    if (len != 12) return;
+    int result = buffer[2];
+    memcpy(board, buffer + 3, 9);
+    switch (result) {
+        case 0:
+            printf("Draw game!\n");
+            break;
+        case 1:
+            printf(my_symbol == 1 ? "You won!\n" : "You lost!\n");
+            break;
+        case 2:
+            printf(my_symbol == 0 ? "You won!\n" : "You lost!\n");
+            break;
+        case 3:
+            printf("Opponent disconnected before game started.\n");
+            break;
+        case 4:
+            printf("Opponent disconnected before game started.\n");
+            break;
+        case 5:
+            printf("Opponent disconnected during game.\n");
+            break;
+        case 6:
+            printf("Opponent disconnected during game.\n");
+            break;
+    }
+
+    display_board();
+    client_state = STATE_AVAILABLE;
+    current_game_id = -1;
+    my_symbol = -1;
+
 }
 
 /*****************************************************************************
