@@ -401,7 +401,7 @@ void process_command(int socket, const char *input) {
  *****************************************************************************/
 void send_list_request(int socket) {
     /* TODO: Build and send Flag 10 packet (just 1 byte!) */
-    
+
     uint8_t buffer[1];
     buffer[0] = FLAG_LIST_REQ;
     sendPDU(socket, buffer, 1);
@@ -443,6 +443,13 @@ void send_list_request(int socket) {
  *****************************************************************************/
 void send_game_start_request(int socket, const char *opponent) {
     /* TODO: Build and send Flag 20 packet (flag + length + opponent name) */
+
+    uint8_t buffer[BUFFER_SIZE];
+    int opponent_len = strlen(opponent);
+    buffer[0] = FLAG_GAME_START_REQ;
+    buffer[1] = opponent_len;
+    memcpy(buffer + 2, opponent, opponent_len);
+    sendPDU(socket, buffer, 2 + opponent_len);
 
     fprintf(stderr, "ERROR: send_game_start_request() not yet implemented\n");
 }
