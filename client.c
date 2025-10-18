@@ -406,7 +406,6 @@ void send_list_request(int socket) {
     buffer[0] = FLAG_LIST_REQ;
     sendPDU(socket, buffer, 1);
 
-    fprintf(stderr, "ERROR: send_list_request() not yet implemented\n");
 }
 
 /*****************************************************************************
@@ -451,7 +450,6 @@ void send_game_start_request(int socket, const char *opponent) {
     memcpy(buffer + 2, opponent, opponent_len);
     sendPDU(socket, buffer, 2 + opponent_len);
 
-    fprintf(stderr, "ERROR: send_game_start_request() not yet implemented\n");
 }
 
 /*****************************************************************************
@@ -487,7 +485,17 @@ void send_game_start_request(int socket, const char *opponent) {
 void send_move(int socket, int position) {
     /* TODO: Build and send Flag 30 packet (flag + game_id + position) */
 
-    fprintf(stderr, "ERROR: send_move() not yet implemented\n");
+    if (client_state != STATE_IN_GAME) {
+        printf("You are not in a game.\n");
+        return;
+    }
+
+    uint8_t buffer[3];
+    buffer[0] = FLAG_MOVE;
+    buffer[1] = (uint8_t)current_game_id;
+    buffer[2] = (uint8_t)position;
+    sendPDU(sockert, buffer, 3);
+
 }
 
 /*****************************************************************************
