@@ -852,7 +852,7 @@ void handle_board_update(uint8_t *buffer, int len) {
     display_board();
     if (next_turn == my_symbol) printf("Your turn\n");
     else printf("Waiting for opponent's move..."\n);
-    
+
 }
 
 /*****************************************************************************
@@ -893,7 +893,25 @@ void handle_board_update(uint8_t *buffer, int len) {
 void handle_move_invalid(uint8_t *buffer, int len) {
     /* TODO: Parse Flag 32 and display error message */
 
-    fprintf(stderr, "ERROR: handle_move_invalid() not yet implemented\n");
+    if (len < 2) return;
+    int error_code = buffer[1];
+    switch (error_code) {
+        case 0:
+            printf("It's not your turn!\n");
+            break;
+        case 1:
+            printf("Position already occupied.\n");
+            break;
+        case 2:
+            printf("Invalid position. Choose 1-9.\n");
+            break;
+        case 3:
+            printf("You are not in a game.\n");
+            break;
+        default:
+            printf("Invalid move.\n");
+            break;
+    }
 }
 
 /*****************************************************************************
