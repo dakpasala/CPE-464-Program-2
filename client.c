@@ -401,6 +401,10 @@ void process_command(int socket, const char *input) {
  *****************************************************************************/
 void send_list_request(int socket) {
     /* TODO: Build and send Flag 10 packet (just 1 byte!) */
+    
+    uint8_t buffer[1];
+    buffer[0] = FLAG_LIST_REQ;
+    sendPDU(socket, buffer, 1);
 
     fprintf(stderr, "ERROR: send_list_request() not yet implemented\n");
 }
