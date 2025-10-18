@@ -1,0 +1,36 @@
+# Docker Compose for CPE 464 Tic-Tac-Toe Testing
+# Student Version - Pulls from Docker Hub
+#
+# Mac users: If localhost doesn't work, try:
+#   - 127.0.0.1 instead of localhost
+#   - Or: docker inspect ttt-ref-server | grep IPAddress
+
+services:
+  # Reference server for testing student clients
+  ref-server:
+    image: prschmitt/cpe464-ttt-server:spring2025
+    container_name: ttt-ref-server
+    ports:
+      - "127.0.0.1:15464:15464"  # Bind explicitly to localhost (works on Mac)
+    networks:
+      - ttt-network
+    restart: unless-stopped
+    hostname: ttt-server
+
+  # Reference client for testing student servers
+  ref-client:
+    image: prschmitt/cpe464-ttt-client:spring2025
+    networks:
+      - ttt-network
+    stdin_open: true
+    tty: true
+    init: true  # Enable proper signal handling (Ctrl+C)
+    profiles:
+      - manual  # Only start when explicitly requested
+    # Enable host.docker.internal on Linux
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  ttt-network:
+    driver: bridge
