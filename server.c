@@ -1285,5 +1285,34 @@ void handle_disconnect(int socket, struct pollfd *pfds, int *num_fds, int index)
     /* TODO: Implement this function */
     /* See the function header above for detailed implementation steps */
 
-    fprintf(stderr, "ERROR: handle_disconnect() not implemented\n");
+    char username[101];
+    int game_id;
+    
+    if (users_get_username(socket, username) >= 0) printf("Player %s disconnected\n", username);
+    game_id = game_get_by_socket(socket);
+
+    if (game_id >= 0) {
+        int opponent = game_get_opponent(game_id, socket);
+        if (opponent >= 0) {
+            int symbol = game_get_symbol(game_id, socket);
+            uint8_t board[9];
+            game_get_board(game_id, board);
+            uint8_t buffer[12];
+            buffer[0] = FLAG_GAME_OVER;
+            buffer[1] = (uint8_t)game_id;
+            buffer[2] = (symbol == 1) ? 5 : 6;
+            memcpy(buffer + 3, board, 9);
+            sendPDU(opponent, buffer, 12);
+            char opp_username[101];
+            if (users_get_username(opponent, opp_username) >= 0) users_set_state(opp_username, USER_AVAILABLE);
+        }
+
+        game_destroy(game_id);
+    }
+
+    users_remove_by_socket(socket);
+    close(socket);
+
+    pfds[index] = pfds[*num_fds - 1];
+    (*num_fds)--;
 }
