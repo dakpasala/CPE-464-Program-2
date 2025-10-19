@@ -137,8 +137,40 @@ int main(int argc, char *argv[]) {
 int connect_to_server(const char *hostname, uint16_t port) {
     /* TODO: Implement socket creation and connection to server */
 
-    fprintf(stderr, "ERROR: connect_to_server() not yet implemented\n");
-    exit(1);
+
+    struct addrinfo hints, *result, *rp;
+    int sockfd;
+    char port_str[10];
+    int ret;
+
+    memset(*&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    snprintf(port_str, sizeof(port_str), "%d", port);
+
+    ret = getaddrinfo(hostname, port_str, &hints, &result);
+    if (ret != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
+        exit(1);
+    }
+
+    for (rp = result; rp != null; rp = rp->ai_next) {
+        sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sockfd == -1) continue;
+        if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) == 0) break;
+
+        close(sockfd);
+        sockfd = -1;
+    }
+
+    freeaddrinfo(result);
+    if (sockfd == -1) {
+        fprintf(stderr, "Could not connect to %s:%u\n", hostname, port);
+        exit(1);
+    }
+
+    return sockfd;
 }
 
 /*****************************************************************************
