@@ -36,6 +36,27 @@
 
 /* TODO: Define your global variables here */
 
+#define HASH_SIZE 1000
+
+typedef struct User {
+    char username[101];
+    int socket;
+    UserState state;
+    struct User *next;
+} User;
+
+typedef struct {
+    User **buckets;
+} HashMap;
+
+unsigned long hash(char *str) {
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)) hash = ((hash << 5) + hash) + c;
+    return hash % HASH_SIZE;
+}
+
+static HashMap *map = NULL;
 
 /*****************************************************************************
  * users_init - Initialize the username table
@@ -46,6 +67,13 @@ void users_init(void) {
      * For dynamic array: allocate initial capacity
      * For hash table: allocate and initialize buckets
      */
+
+     // tyler imma do this function, but implement ur version if u want a diff one, this gave me
+     // leet code esque type problem so i wanted to do for fun, but do whatver u think is best, we
+     // can decide which one is better
+
+    map = malloc(sizeof(HashMap));
+    map->buckets = calloc(HASH_SIZE, sizeof(User *));
 }
 
 /*****************************************************************************
