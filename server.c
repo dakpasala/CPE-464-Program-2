@@ -239,7 +239,28 @@ void run_server(int server_socket) {
     /* TODO: Implement this function */
     /* See the function header above for detailed implementation steps */
 
-    fprintf(stderr, "ERROR: run_server() not implemented\n");
+    struct pollfd pfds[MAX_CLIENTS + 1];
+
+    memset(pfds, 0, sizeof(pfds));
+
+    pfds[0].fd = server_socket;
+    pfds[0].events = POLLIN;
+    int num_fds = 1;
+
+    while (keep_running) {
+        int poll_count = poll(pfds, num_fds, -1);
+        if (poll_count < 0) {
+            if (errno == EINTR) continue;
+            perror("poll");
+            break;
+        }
+
+        if (pfds[0].revents && POLLIN) handle_new_connection(server_socket, pfds, &num_fds);
+
+        for (int i = 1; i < num_fds; i++) {
+            if (pfds[i].revents && POLLIN) handle_client_data(i, pfds, &num_fds);
+        }
+    }
 }
 
 /*****************************************************************************
