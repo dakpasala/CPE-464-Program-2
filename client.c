@@ -262,7 +262,18 @@ void run_client(int socket) {
 void handle_stdin(int socket) {
     /* TODO: Implement reading from stdin and calling process_command() */
 
-    fprintf(stderr, "ERROR: handle_stdin() not yet implemented\n");
+    char input[MAX_INPUT];
+
+    if (client_state == STATE_AVAILABLE) {
+        printf("$: ");
+        fflush(stdout);
+    }
+
+    if (fgets(input, MAX_INPUT, stdin) == NULL) return;
+
+    input[strcspn(input, "\n")] = '\0';
+    process_command(socket, input);
+    
 }
 
 /*****************************************************************************
