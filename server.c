@@ -301,8 +301,23 @@ void run_server(int server_socket) {
 void handle_new_connection(int server_socket, struct pollfd *pfds, int *num_fds) {
     /* TODO: Implement this function */
     /* See the function header above for detailed implementation steps */
+    struct sockaddr_in client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+    int client_socket= accept(server_socket, (struct sockaddr *)&client_addr, &addr_len);
+    if (client_socket < 0) {
+        perror("accept");
+        return;
+    }
 
-    fprintf(stderr, "ERROR: handle_new_connection() not implemented\n");
+    if (*num_fds < MAX_CLIENTS + 1) {
+        pfds[*num_fds].fd = client_socket;
+        pfds[*num_fds].events = POLLIN;
+        (*num_fds)++;
+    }
+    else {
+        fprintf(stderr, "Too many clients\n");
+        close(client_socket);
+    }
 }
 
 /*****************************************************************************
