@@ -273,7 +273,7 @@ void handle_stdin(int socket) {
 
     input[strcspn(input, "\n")] = '\0';
     process_command(socket, input);
-    
+
 }
 
 /*****************************************************************************
@@ -305,7 +305,40 @@ void handle_stdin(int socket) {
 void handle_server_data(int socket) {
     /* TODO: Implement receiving packets and dispatching to handlers */
 
-    fprintf(stderr, "ERROR: handle_server_data() not yet implemented\n");
+    uint8_t buffer[BUFFER_SIZE];
+    int bytes_recieved = recvPDU(socket, buffer, BUFFER_SIZE);
+
+    if (bytes_recieved == 0) exit(0);
+    if (bytes_recieved < 0) exit(1);
+
+    uint8_t flag = buffer[0];
+    switch (flag) {
+        case 11:
+            handle_list_response(socket, buffer, bytes_recieved);
+            break;
+        case 21:
+            handle_game_started(buffer, bytes_recieved);
+            break;
+        case 22:
+            handle_game_start_error(buffer, bytes_recieved);
+            break;
+        case 31:
+            handle_board_update(buffer, bytes_recieved);
+            break;
+        case 32:
+            handle_move_invalid(buffer, bytes_recieved);
+            break;
+        case 33:
+            handle_game_over(buffer, bytes_recieved);
+            break;
+        case 7:
+            printf("Error: %s\n", buffer + 1);
+            break;
+        default:
+            printf("Unknown flag: %d\n", flag);
+            break;
+    }
+
 }
 
 /*****************************************************************************
