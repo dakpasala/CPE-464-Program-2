@@ -152,8 +152,50 @@ int setup_server(uint16_t port) {
     /* TODO: Implement this function */
     /* See the function header above for detailed implementation steps */
 
-    fprintf(stderr, "ERROR: setup_server() not implemented\n");
-    exit(1);
+    int sockfd;
+    struct sockaddr_in addr;
+    int opt = 1;
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) {
+        perror("socket");
+        exit(1);
+    }
+    
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+        perror("setsockopt");
+        close(sockfd);
+        exit(1);
+    }
+
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_port = htons(port);
+
+    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+        perror("bind");
+        close(sockfd);
+        exit(1);
+    }
+
+    if (port == 0) {
+        socklen_t len = sizeof(addr);
+        if (getsockname(sockfd, (struct sockaddr *)&addr, &len) == -1) {
+            perror("getsockname");
+            close(sockfd);
+            exit(1);
+        }
+        printf("Server is using port %d\n", ntohs(addr.sin_port));
+    }
+
+    if (listen(sockfd, 10) < 0) {
+        perror("listen");
+        close(sockfd);
+        exit(1);
+    }
+
+    return sockfd;
 }
 
 /*****************************************************************************
