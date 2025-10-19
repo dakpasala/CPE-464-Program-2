@@ -377,7 +377,37 @@ void handle_client_data(int index, struct pollfd *pfds, int *num_fds) {
     /* TODO: Implement this function */
     /* See the function header above for detailed implementation steps */
 
-    fprintf(stderr, "ERROR: handle_client_data() not implemented\n");
+    int socket_fd = pfds[index].fd;
+    uint8_t buffer[BUFFER_SIZE];
+    int bytes_received = recvPDU(socket_fd, buffer, BUFFER_SIZE)
+    if (bytes_received == 0) {
+        handle_disconnect(socket_fd, pfds, num_fds, index);
+        return;
+    }
+    else if (bytes_received < 0) {
+        perror("recvPDU");
+        handle_disconnect(socket_fd, pfds, num_fds, index);
+        return;
+    }
+
+    uint8_t flag = buffer[0];
+    switch (flag) {
+        case 1:
+            handle_initial_connection(socket_fd, buffer, bytes_received);
+            break;
+        case 10:
+            handle_list_request(socket_fd);
+            break;
+        case 20:
+            handle_game_start_request(socket_fd, buffer, bytes_received);
+            break;
+        case 30:
+            handle_move(socket_fd, buffer, bytes_received);
+            break;
+        default:
+            fprintf(stderr, "Unknown flag: %d\n", flag);
+            break;
+    }
 }
 
 /*****************************************************************************
