@@ -235,7 +235,19 @@ int send_initial_connection(int socket, const char *username) {
 void run_client(int socket) {
     /* TODO: Implement poll() loop monitoring stdin and server socket */
 
-    fprintf(stderr, "ERROR: run_client() not yet implemented\n");
+    init_board();
+    struct pollfd pfds[2];
+    pfds[0]fd = STDIN_FILENO;
+    pfds[0].events = POLLIN;
+    pfds[1].fd = socket;
+    pfds[1].events = POLLIN;
+    while (1) {
+        int events = poll(pfds, 2, -1);
+        if (events < 0) continue;
+        if (pfds[0].revents && POLLIN) handle_stdin(socket);
+        if (pfds[1].revents && POLLIN) handle_server_data(socket);
+    }
+
 }
 
 /*****************************************************************************
