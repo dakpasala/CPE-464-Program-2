@@ -162,7 +162,7 @@ int setup_server(uint16_t port) {
         exit(1);
     }
     
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
         perror("setsockopt");
         close(sockfd);
         exit(1);
@@ -379,7 +379,7 @@ void handle_client_data(int index, struct pollfd *pfds, int *num_fds) {
 
     int socket_fd = pfds[index].fd;
     uint8_t buffer[BUFFER_SIZE];
-    int bytes_received = recvPDU(socket_fd, buffer, BUFFER_SIZE)
+    int bytes_received = recvPDU(socket_fd, buffer, BUFFER_SIZE);
     if (bytes_received == 0) {
         handle_disconnect(socket_fd, pfds, num_fds, index);
         return;

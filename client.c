@@ -143,7 +143,7 @@ int connect_to_server(const char *hostname, uint16_t port) {
     char port_str[10];
     int ret;
 
-    memset(*&hints, 0, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
@@ -155,7 +155,7 @@ int connect_to_server(const char *hostname, uint16_t port) {
         exit(1);
     }
 
-    for (rp = result; rp != null; rp = rp->ai_next) {
+    for (rp = result; rp != NULL; rp = rp->ai_next) {
         sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
         if (sockfd == -1) continue;
         if (connect(sockfd, rp->ai_addr, rp->ai_addrlen) == 0) break;
@@ -269,15 +269,15 @@ void run_client(int socket) {
 
     init_board();
     struct pollfd pfds[2];
-    pfds[0]fd = STDIN_FILENO;
+    pfds[0].fd = STDIN_FILENO;
     pfds[0].events = POLLIN;
     pfds[1].fd = socket;
     pfds[1].events = POLLIN;
     while (1) {
         int events = poll(pfds, 2, -1);
         if (events < 0) continue;
-        if (pfds[0].revents && POLLIN) handle_stdin(socket);
-        if (pfds[1].revents && POLLIN) handle_server_data(socket);
+        if (pfds[0].revents & POLLIN) handle_stdin(socket);
+        if (pfds[1].revents & POLLIN) handle_server_data(socket);
     }
 
 }
@@ -582,7 +582,7 @@ void send_move(int socket, int position) {
     buffer[0] = FLAG_MOVE;
     buffer[1] = (uint8_t)current_game_id;
     buffer[2] = (uint8_t)position;
-    sendPDU(sockert, buffer, 3);
+    sendPDU(socket, buffer, 3);
 
 }
 
@@ -800,9 +800,6 @@ void handle_game_started(uint8_t *buffer, int len) {
     init_board();
     if (my_symbol == 1) printf("You go first!\n");
     else printf("Waiting for opponent's move...\n");
-
-
-    fprintf(stderr, "ERROR: handle_game_started() not yet implemented\n");
 }
 
 /*****************************************************************************
@@ -935,11 +932,11 @@ void handle_board_update(uint8_t *buffer, int len) {
     int who_moved = buffer[3];
     memcpy(board, buffer + 4, 9);
     int next_turn = buffer[13];
-    if (who_moved == my_symbol) printf("You placed X/0 at poisition %d\n", position);
+    if (who_moved == my_symbol) printf("You placed X/O at poisition %d\n", position);
     else printf("Opponent placed X/O at position %d\n", position);
     display_board();
     if (next_turn == my_symbol) printf("Your turn\n");
-    else printf("Waiting for opponent's move..."\n);
+    else printf("Waiting for opponent's move...\n");
 
 }
 
