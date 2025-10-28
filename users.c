@@ -36,27 +36,15 @@
 
 /* TODO: Define your global variables here */
 
-#define HASH_SIZE 1000
-
-typedef struct User {
+typedef struct UserNode {
     char username[101];
     int socket;
     UserState state;
-    struct User *next;
-} User;
+    struct UserNode *next;
+} UserNode;
 
-typedef struct {
-    User **buckets;
-} HashMap;
-
-unsigned long hash(char *str) {
-    unsigned long hash = 5381;
-    int c;
-    while ((c = *str++)) hash = ((hash << 5) + hash) + c;
-    return hash % HASH_SIZE;
-}
-
-static HashMap *map = NULL;
+// defining global linked list
+static UserNode* user_list = NULL;
 
 /*****************************************************************************
  * users_init - Initialize the username table
@@ -72,8 +60,8 @@ void users_init(void) {
      // leet code esque type problem so i wanted to do for fun, but do whatver u think is best, we
      // can decide which one is better
 
-    map = malloc(sizeof(HashMap));
-    map->buckets = calloc(HASH_SIZE, sizeof(User *));
+    // setting to the LL to NULL
+    user_list = NULL;
 }
 
 /*****************************************************************************
@@ -103,7 +91,32 @@ int users_add(const char *username, int socket) {
      * 7. Return 0 on success
      */
 
-    return -2;  /* Placeholder - remove this when implementing */
+    if (username == NULL) return -3;
+
+    if (strlen(username) > 100) return -4;
+
+    // if the username exists, return
+    if (users_exists(username)) return -1;
+
+    // creating a new user variable
+    UserNode* new_user = malloc(sizeof(UserNode));
+
+    // if there was a memory allocation failure
+    if (new_user == NULL) {return -2;}
+
+    // copy over the name
+    strncpy(new_user->username, username, 100);
+    new_user->username[100] = '\0';
+
+    // copy over socket and new user to the LL
+    new_user->socket = socket;
+    new_user->next = user_list;
+    user_list = new_user;
+
+    // assigning the user state to available
+    new_user->state = USER_AVAILABLE;
+
+    return 0;  /* Placeholder - remove this when implementing */
 }
 
 /*****************************************************************************
@@ -127,6 +140,30 @@ int users_remove(const char *username) {
      * 5. Return 0
      */
 
+    if (username == NULL) return -3;
+    UserNode* previous = NULL;
+    UserNode* current = user_list;
+
+    while (current){
+
+        // if the names are the same
+        if (strcmp(current->username, username) == 0){
+
+            // for unlinking the middle or tail
+            if (previous) previous->next = current->next;
+            
+            // for unlinking the head
+            else user_list = current->next;
+
+            // freeing memory and returning 0 (success)
+            free(current);
+            return 0;
+        }
+        
+        previous = current;
+        current = current->next;
+    }
+
     return -1;  /* Placeholder - remove this when implementing */
 }
 
@@ -138,6 +175,31 @@ int users_remove_by_socket(int socket) {
      *
      * Similar to users_remove, but search by socket instead of username
      */
+
+    // invalid socket check
+    if (socket < 0) return -2;
+
+    UserNode* previous = NULL;
+    UserNode* current = user_list;
+
+    while (current) {
+
+        if (current->socket == socket){
+
+            // unlinking anything else but head
+            if (previous) previous->next = current->next;
+
+            // unlinking the head
+            else user_list = current->next;
+
+            free(current);
+            return 0;
+        }
+
+        previous = current;
+        current = current->next;
+
+    }
 
     return -1;  /* Placeholder - remove this when implementing */
 }
@@ -154,6 +216,20 @@ int users_exists(const char *username) {
      * Use strcmp() to compare strings
      */
 
+    if (username == NULL) return -3;
+
+    UserNode* current = user_list;
+
+    while(current){
+
+        // if they are the same
+        if (strcmp(current->username, username) == 0){
+            return 1;
+        }
+
+        current = current->next;
+    }
+
     return 0;  /* Placeholder - remove this when implementing */
 }
 
@@ -167,6 +243,21 @@ int users_get_socket(const char *username) {
      * Return the socket descriptor if found
      * Return -1 if not found
      */
+
+    if (username == NULL) return -3;
+
+    UserNode* current = user_list;
+
+    while (current){
+
+        if (strcmp(current->username, username) == 0){
+
+            return current->socket;
+
+        } 
+
+        current = current->next;
+    }
 
     return -1;  /* Placeholder - remove this when implementing */
 }
@@ -184,6 +275,25 @@ int users_get_username(int socket, char *username) {
      * Make sure the buffer is at least 101 bytes (you can assume it is)
      */
 
+    if (username == NULL) return -3;
+
+    UserNode* current = user_list;
+
+    while(current){
+
+        // if there is a matching socket
+        if (current->socket == socket){
+
+            strncpy(username, current->username,100);
+            username[100] = '\0';
+            printf("The socket: %d has username: %s\n", socket, username);
+            return 0;
+
+        }
+
+        current = current->next;
+    }
+
     return -1;  /* Placeholder - remove this when implementing */
 }
 
@@ -197,6 +307,22 @@ int users_set_state(const char *username, UserState state) {
      * Return 0 on success, -1 if not found
      */
 
+    if (username == NULL) {return -2;}
+
+    UserNode* current = user_list;
+    
+    while (current){
+
+        if (strcmp(current->username, username) == 0){
+
+            current->state = state;
+            return 0;
+        }
+
+        current = current->next;
+
+    }
+
     return -1;  /* Placeholder - remove this when implementing */
 }
 
@@ -209,6 +335,20 @@ UserState users_get_state(const char *username) {
      * Find the user and return their state
      * Return USER_AVAILABLE if not found (safe default)
      */
+
+    if (username == NULL) {return -3;}
+
+    UserNode* current = user_list;
+
+    while (current){
+
+        if (strcmp(current->username, username) == 0){
+
+            return current->state;
+        }
+
+        current = current->next;
+    }
 
     return USER_AVAILABLE;  /* Placeholder - always returns this now */
 }
@@ -224,7 +364,17 @@ int users_count(void) {
      * For hash table: count entries across all buckets
      */
 
-    return 0;  /* Placeholder - remove this when implementing */
+     UserNode* current = user_list;
+     int count = 0;
+
+     while (current){
+
+        count++;
+        current = current->next;
+
+     }
+
+    return count;  /* Placeholder - remove this when implementing */
 }
 
 /*****************************************************************************
@@ -241,7 +391,19 @@ int users_get_all(char **usernames, int max_users) {
      * Return the number of usernames copied
      */
 
-    return 0;  /* Placeholder - remove this when implementing */
+     if (max_users < 0 || usernames == NULL){ return -1;}
+
+    int count = 0;
+    UserNode* current = user_list;
+
+    while (current && count < max_users){
+
+        strcpy(usernames[count], current->username);
+        count++;
+        current = current->next;
+    }
+    
+    return count;  /* Placeholder - remove this when implementing */
 }
 
 /*****************************************************************************
@@ -264,4 +426,17 @@ void users_cleanup(void) {
      *   - Free all entries in all buckets
      *   - Free the bucket array
      */
+
+    UserNode* current = user_list;
+    UserNode* temp;
+
+    while (current){
+        
+        temp = current;
+        current = current->next;
+        free(temp);
+        
+    }
+
+    user_list = NULL;   
 }
