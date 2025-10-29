@@ -174,3 +174,9 @@ If the client is stuck, force stop it:
 docker ps  # Find the container ID
 docker stop <container_id>
 ```
+
+
+for personal notes:
+gcc -o ttt-client client.c pdu.c
+gcc -o ttt-server server.c pdu.c game.c users.c
+

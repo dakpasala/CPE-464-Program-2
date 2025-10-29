@@ -798,6 +798,13 @@ void handle_game_started(uint8_t *buffer, int len) {
     current_game_id = buffer[3 + opponent_len];
     client_state = STATE_IN_GAME;
     init_board();
+
+    printf("\n=== Game Started ===\n");
+    printf("Playing against: %s\n", opponent_name);
+    printf("You are: %c\n\n", my_symbol == 1 ? 'X' : 'O');
+    display_board();
+    printf("\n");
+
     if (my_symbol == 1) printf("You go first!\n");
     else printf("Waiting for opponent's move...\n");
 }
@@ -932,10 +939,10 @@ void handle_board_update(uint8_t *buffer, int len) {
     int who_moved = buffer[3];
     memcpy(board, buffer + 4, 9);
     int next_turn = buffer[13];
-    if (who_moved == my_symbol) printf("You placed X/O at poisition %d\n", position);
+    if (who_moved == my_symbol) printf("You placed X/O at position %d\n", position);
     else printf("Opponent placed X/O at position %d\n", position);
     display_board();
-    if (next_turn == my_symbol) printf("Your turn\n");
+    if (next_turn == my_symbol) printf("Your move (1-6):\n");
     else printf("Waiting for opponent's move...\n");
 
 }
