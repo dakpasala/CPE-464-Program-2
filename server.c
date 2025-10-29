@@ -686,6 +686,45 @@ void handle_list_request(int socket) {
     /* Follow the pattern from handle_initial_connection() */
     /* See the detailed packet formats and implementation steps above */
 
+    // checking to see if it is a valid socket
+    if (socket < 0) { return;}
+
+    // creating the usernames
+    char *usernames[MAX_CLIENTS];
+    
+    // need to free these later
+    for (int i=0; i < MAX_CLIENTS; i++ ){
+
+        usernames[i] = malloc(101);
+    }
+
+    // fills the usernames array and returns the count
+    int count = users_get_all(usernames, MAX_CLIENTS);
+    
+    // Send Flag 11 (player count)
+    uint32_t net_count = htonl(count);
+    char buffer[101];
+    buffer[0] = FLAG_LIST_COUNT;
+    memcpy(buffer + 1, &net_count, 4);
+    sendPDU(socket, buffer, 5);
+
+    // Send Flag 12 for each player
+    for (int i = 0; i < count; i++){
+
+        
+
+    }
+
+    // freeing the allocated memory
+    for (int i = 0; i < MAX_CLIENTS; i++){
+
+        free(usernames[i]);
+    }
+
+    char buffer[101];
+
+
+
     fprintf(stderr, "ERROR: handle_list_request() not implemented\n");
 }
 
