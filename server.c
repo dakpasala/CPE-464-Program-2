@@ -991,7 +991,24 @@ void send_game_started(int x_socket, int o_socket, int game_id) {
     /* Follow the pattern from handle_initial_connection() for building packets */
     /* See the detailed packet format and implementation steps above */
 
-    fprintf(stderr, "ERROR: send_game_started() not implemented\n");
+    char x_username[101], o_username[101];
+    users_get_username(x_socket, x_username);
+    users_get_username(o_socket, o_username);
+
+    uint8_t buffer[BUFFER_SIZE];
+    buffer[0] = FLAG_GAME_STARTED;
+    buffer[1] = strlen(o_username);
+    memcpy(buffer + 2, o_username, strlen(o_username));
+    buffer[2 + strlen(x_username)] = SYMBOL_O;
+    buffer[3 + strlen(o_username)] = (uint8_t)game_id;
+    sendPDU(x_socket, buffer, 4 + strlen(o_username));
+
+    buffer[0] = FLAG_GAME_STARTED;
+    buffer[1] = strlen(x_username);
+    memcpy(buffer + 2, x_username, strlen(x_username));
+    buffer[2 + strlen(x_username)] = SYMBOL_O;
+    buffer[3 + strlen(x_username)] = (uint8_t)game_id;
+    sendPDU(o_socket, buffer, 4 + strlen(x_username));
 }
 
 /*****************************************************************************
