@@ -1142,7 +1142,46 @@ void handle_move(int socket, uint8_t *buffer, int len) {
     /* Use send_board_update() and send_game_over() for notifications */
     /* See the detailed packet formats and implementation steps above */
 
-    fprintf(stderr, "ERROR: handle_move() not implemented\n");
+    if (len < 3) return;
+    uint8_t game_id = buffer[1];
+    uint8_t position = buffer[2];
+    if (game_get_by_socket(socket) != game_id) {
+        uint8_t response[2];
+        response[0] = FLAG_MOVE_INVALID;
+        response[1] = 3;  
+        sendPDU(socket, response, 2);
+        return;
+    }
+
+    int result = game_make_move(game_id, socket, position);
+    if (result == 0) {
+        int symbol = game_get_symbol(game_id, socket);
+        send_board_update(game_id, position, symbol);
+        
+        int winner = game_check_winner(game_id);
+        if (winner == CELL_X)  send_game_over(game_id, RESULT_X_WON);
+        else if (winner == CELL_O) send_game_over(game_id, RESULT_O_WON);
+        else if (game_is_draw(game_id)) send_game_over(game_id, RESULT_DRAW);
+    }
+    else if (result > 0) {
+        uint8_t response[2];
+        response[0] = FLAG_MOVE_INVALID;
+        switch (result) {
+            case -2:
+                response[1] = 0;  
+                break;
+            case -3:
+                response[1] = 2;  
+                break;
+            case -4:
+                response[1] = 1;  
+                break;
+            default:
+                response[1] = 3;  
+                break;
+        }
+        sendPDU(socket, response, 2);
+    }
 }
 
 /*****************************************************************************
