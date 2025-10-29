@@ -1359,7 +1359,32 @@ void send_game_over(int game_id, int result) {
     /* Don't forget to clean up both user states and the game! */
     /* See the detailed packet format and implementation steps above */
 
-    fprintf(stderr, "ERROR: send_game_over() not implemented\n");
+    uint8_t board[9];
+    game_get_board(game_id, board);
+
+    int x_socket = game_get_x_socket(game_id);
+    int o_socket = game_get_o_socket(game_id);
+    if (x_socket < 0 || o_socket < 0) {
+        game_destroy(game_id);
+        return;
+    }
+
+    char x_username[101], o_username[101];
+    users_get_username(x_socket, x_username);
+    users_get_username(o_socket, o_username);
+
+    uint8_t buffer[12];
+    buffer[0] = FLAG_GAME_OVER;
+    buffer[1] = (uint8_t)game_id;
+    buffer[2] = (uint8_t)result;
+    memcpy(buffer + 3, board, 9);
+
+    sendPDU(x_socket, buffer, 12);
+    sendPDU(o_socket, buffer, 12);
+
+    users_set_state(x_username, USER_AVAILABLE);
+    users_set_state(o_username, USER_AVAILABLE);
+    game_destroy(game_id);
 }
 
 /*****************************************************************************
