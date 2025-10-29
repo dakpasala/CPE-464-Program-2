@@ -870,7 +870,54 @@ void handle_game_start_request(int socket, uint8_t *buffer, int len) {
     /* Follow the pattern from handle_initial_connection() for parsing */
     /* See the detailed packet formats and implementation steps above */
 
-    fprintf(stderr, "ERROR: handle_game_start_request() not implemented\n");
+    int username_len = buffer[1];
+    if (len < 2 + username_len) return;
+
+    char requester_username[101];
+    if (users_get_username(socket, requester_username) < 0) return;
+
+    char opponent_username[101];
+    memcpy(opponent_username, buffer + 2, username_len);
+
+    if (strcmp(opponent_username, requester_username) == 0) {
+        send_game_start_error(socket, 3, opponent_username);
+        return;
+    }
+    if (!users_exists(opponent_username)) {
+        send_game_start_error(socket, 0, opponent_username);
+        return;
+    }
+    if (users_get_state(requester_username) == USER_IN_GAME) {
+        send_game_start_error(socket, 2, opponent_username);
+        return;
+    }
+    if (users_get_state(opponent_username) == USER_IN_GAME) {
+        send_game_start_error(socket, 1, opponent_username);
+        return;
+    }
+
+    int opponent_socket = users_get_socket(opponent_username);
+    int game_id = game_create(socket, opponent_socket);
+    if (game_id < 0) {
+        fprintf(stderr, "ERROR: Game creation failed\n");
+        return;
+    }
+
+    users_set_state(requester_username, USER_IN_GAME);
+    users_set_state(opponent_username, USER_IN_GAME);
+    send_game_started(socket, opponent_socket, game_id);
+}
+
+void send_game_start_error(int socket, uint8_t error_code, const char *opponent_username) {
+    uint8_t buffer[BUFFER_SIZE];
+    uint8_t opponent_len = strlen(opponent_username);
+
+    buffer[0] = FLAG_GAME_START_ERR;
+    buffer[1] = error_code;
+    buffer[2] = opponent_len;
+    memcpy(buffer + 3, opponent_username, opponent_len);
+
+    sendPDU(socket, buffer, 3 + opponent_len);
 }
 
 /*****************************************************************************
