@@ -60,6 +60,7 @@ void send_game_over(int game_id, int result);
 void handle_disconnect(int socket, struct pollfd *pfds, int *num_fds, int index);
 void signal_handler(int signum);
 int validate_username(const char *username);
+void send_game_start_error(int socket, uint8_t error_code, const char *opponent_username);
 
 /*****************************************************************************
  * main - Server entry point
@@ -700,7 +701,7 @@ void handle_list_request(int socket) {
     
     // Send Flag 11 (player count)
     uint32_t net_count = htonl(count);
-    char buffer[101];
+    u_int8_t buffer[101];
     buffer[0] = FLAG_LIST_COUNT;
     memcpy(buffer + 1, &net_count, 4);
     sendPDU(socket, buffer, 5);
@@ -720,6 +721,18 @@ void handle_list_request(int socket) {
 
     // freeing the allocated memory
     for (int i = 0; i < MAX_CLIENTS; i++) free(usernames[i]);
+}
+
+void send_game_start_error(int socket, uint8_t error_code, const char *opponent_username) {
+    uint8_t buffer[BUFFER_SIZE];
+    uint8_t opponent_len = strlen(opponent_username);
+
+    buffer[0] = FLAG_GAME_START_ERR;
+    buffer[1] = error_code;
+    buffer[2] = opponent_len;
+    memcpy(buffer + 3, opponent_username, opponent_len);
+
+    sendPDU(socket, buffer, 3 + opponent_len);
 }
 
 /*****************************************************************************
@@ -900,18 +913,6 @@ void handle_game_start_request(int socket, uint8_t *buffer, int len) {
     users_set_state(requester_username, USER_IN_GAME);
     users_set_state(opponent_username, USER_IN_GAME);
     send_game_started(socket, opponent_socket, game_id);
-}
-
-void send_game_start_error(int socket, uint8_t error_code, const char *opponent_username) {
-    uint8_t buffer[BUFFER_SIZE];
-    uint8_t opponent_len = strlen(opponent_username);
-
-    buffer[0] = FLAG_GAME_START_ERR;
-    buffer[1] = error_code;
-    buffer[2] = opponent_len;
-    memcpy(buffer + 3, opponent_username, opponent_len);
-
-    sendPDU(socket, buffer, 3 + opponent_len);
 }
 
 /*****************************************************************************

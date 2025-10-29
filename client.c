@@ -942,7 +942,7 @@ void handle_board_update(uint8_t *buffer, int len) {
     if (who_moved == my_symbol) printf("You placed X/O at position %d\n", position);
     else printf("Opponent placed X/O at position %d\n", position);
     display_board();
-    if (next_turn == my_symbol) printf("Your move (1-6):\n");
+    if (next_turn == my_symbol) printf("Your move (1-9):\n");
     else printf("Waiting for opponent's move...\n");
 
 }
@@ -1077,16 +1077,16 @@ void handle_game_over(uint8_t *buffer, int len) {
             printf(my_symbol == 0 ? "You won!\n" : "You lost!\n");
             break;
         case 3:
-            printf("Opponent disconnected before game started.\n");
+            printf("Opponent disconnected before game started. You win by forfeit!\n");
             break;
         case 4:
-            printf("Opponent disconnected before game started.\n");
+            printf("Opponent disconnected before game started. You win by forfeit!\n");
             break;
         case 5:
-            printf("Opponent disconnected during game.\n");
+            printf("Opponent disconnected during game. You win by forfeit!\n");
             break;
         case 6:
-            printf("Opponent disconnected during game.\n");
+            printf("Opponent disconnected during game. You win by forfeit!\n");
             break;
     }
 
