@@ -1255,7 +1255,24 @@ void send_board_update(int game_id, int position, int who_moved) {
     /* Follow the pattern from handle_initial_connection() for building packets */
     /* See the detailed packet format and implementation steps above */
 
-    fprintf(stderr, "ERROR: send_board_update() not implemented\n");
+    uint8_t board[9];
+    game_get_board(game_id, board);
+    int current_turn = game_get_current_turn(game_id);
+
+    int x_socket = game_get_x_socket(game_id);
+    int o_socket = game_get_o_socket(game_id);
+    if (x_socket < 0 || o_socket < 0) return;
+
+    uint8_t buffer[14];
+    buffer[0] = FLAG_BOARD_UPDATE;
+    buffer[1] = (uint8_t)game_id;
+    buffer[2] = (uint8_t)position;
+    buffer[3] = (uint8_t)who_moved;
+    memcpy(buffer + 4, board, 9);
+    buffer[13] = (uint8_t)current_turn;
+
+    sendPDU(x_socket, buffer, 14);
+    sendPDU(o_socket, buffer, 14);
 }
 
 /*****************************************************************************
