@@ -7,6 +7,6 @@ gcc -o ttt-server server.c pdu.c game.c users.c
 
 and then do:
 
-./ttl-client dakshesh 127.0.0.1 15464 (tyler, replace w ur computer username)
+./ttt-client dakshesh 127.0.0.1 15464 (tyler, replace w ur computer username)
 docker-compose run --rm ref-client test_user host.docker.internal 15464 
 
