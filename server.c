@@ -256,10 +256,10 @@ void run_server(int server_socket) {
             break;
         }
 
-        if (pfds[0].revents && POLLIN) handle_new_connection(server_socket, pfds, &num_fds);
+        if (pfds[0].revents & POLLIN) handle_new_connection(server_socket, pfds, &num_fds);
 
         for (int i = 1; i < num_fds; i++) {
-            if (pfds[i].revents && POLLIN) handle_client_data(i, pfds, &num_fds);
+            if (pfds[i].revents & POLLIN) handle_client_data(i, pfds, &num_fds);
         }
     }
 }
@@ -694,7 +694,7 @@ void handle_list_request(int socket) {
     char *usernames[MAX_CLIENTS];
     
     // need to free these later
-    for (int i=0; i < MAX_CLIENTS; i++ ) usernames[i] = malloc(101);
+    for (int i = 0; i < MAX_CLIENTS; i++ ) usernames[i] = malloc(101);
 
     // fills the usernames array and returns the count
     int count = users_get_all(usernames, MAX_CLIENTS);
@@ -885,6 +885,7 @@ void handle_game_start_request(int socket, uint8_t *buffer, int len) {
 
     char opponent_username[101];
     memcpy(opponent_username, buffer + 2, username_len);
+    opponent_username[username_len] = '\0';
 
     if (strcmp(opponent_username, requester_username) == 0) {
         send_game_start_error(socket, 3, opponent_username);
@@ -994,7 +995,7 @@ void send_game_started(int x_socket, int o_socket, int game_id) {
     buffer[0] = FLAG_GAME_STARTED;
     buffer[1] = strlen(o_username);
     memcpy(buffer + 2, o_username, strlen(o_username));
-    buffer[2 + strlen(x_username)] = SYMBOL_O;
+    buffer[2 + strlen(x_username)] = SYMBOL_X;
     buffer[3 + strlen(o_username)] = (uint8_t)game_id;
     sendPDU(x_socket, buffer, 4 + strlen(o_username));
 
@@ -1158,7 +1159,7 @@ void handle_move(int socket, uint8_t *buffer, int len) {
         else if (winner == CELL_O) send_game_over(game_id, RESULT_O_WON);
         else if (game_is_draw(game_id)) send_game_over(game_id, RESULT_DRAW);
     }
-    else if (result > 0) {
+    else if (result < 0) {
         uint8_t response[2];
         response[0] = FLAG_MOVE_INVALID;
         switch (result) {
@@ -1482,10 +1483,11 @@ void handle_disconnect(int socket, struct pollfd *pfds, int *num_fds, int index)
             buffer[2] = (symbol == 1) ? 5 : 6;
             memcpy(buffer + 3, board, 9);
             sendPDU(opponent, buffer, 12);
-            char opp_username[101];
-            if (users_get_username(opponent, opp_username) >= 0) users_set_state(opp_username, USER_AVAILABLE);
         }
-
+        
+        // ask if this is right
+        char opp_username[101];
+        if (users_get_username(opponent, opp_username) >= 0) users_set_state(opp_username, USER_AVAILABLE); 
         game_destroy(game_id);
     }
 
